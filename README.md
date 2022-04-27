@@ -6,7 +6,8 @@ La siguiente es una guía de instalación de Arch Linux en UTM en una Mac M1. La
 
 Lo primero que debemos hacer es descargar Ubuntu ARM. Nos metemos al sitio web de [Ubuntu](https://cdimage.ubuntu.com/daily-live/current/), en el sitio web veremos varias opciones de descarga. Nosotros vamos a descargar la iso de la imagen:
 
-![Ubuntu-Website](https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/2.png?raw=true)
+<img width="700" alt="2" src="https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/2.png?raw=true">
+
 
 Una vez descargada la imagen ISO de Ubuntu ARM, procederemos a descargar UTM en caso de no tenerlo instalado. Nos metemos al sitio web de [UTM](https://mac.getutm.app)
 
@@ -34,7 +35,7 @@ Vamos a darle clic en **Linux** y tendremos la siguiente interfaz
 
 ![UTM-GUI-Linux](https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/10.png?raw=true)
 
-Le damos clic en **Browse** y navegamos hasta la ubicación de la imagen ISO y damos clic en **Open**
+Le damos clic en **Browse** y navegamos hasta la ubicación de la [Imagen ISO de Ubuntu](https://cdimage.ubuntu.com/daily-live/current/) que descargamos previamente, la seleccionamos y damos clic en **Open**
 
 ![UTM-GUI-ISO](https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/11.png?raw=true)
 
@@ -51,4 +52,11 @@ Después el asistente nos llevará a configurar si queremos configurar un direct
 ![UTM-GUI-ISO](https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/15.png?raw=true)
 
 ## Ejecución de la máquina virtual
+
+Una vez que hayamos terminado de configurar nuestra máquina virtual procederemos a ejecutarla. En esta versión de la Daily Build de Ubuntu, tenemos que poner el nombre de usuario como "Ubuntu" y presionar la tecla enter, una vez dentro de Ubuntu, buscaremos la terminal y la abriremos
+
+![UTM-GUI-ISO](https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/17.png?raw=true)
+
+En mi caso me conectaré a la máquina por medio de ssh.
+
 
