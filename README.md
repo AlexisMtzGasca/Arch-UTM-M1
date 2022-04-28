@@ -110,3 +110,101 @@ Montaremos todos los subvolúmenes con las siguiente opciones:
 - compress: El tipo de compresión que usaremos para el subvolúmen, en este caso usaré zstd
 - space_cache: Opciones para controlar la caché de espacio libre. La caché de espacio libre mejora en gran medida el rendimiento al leer el espacio libre del grupo de bloques en la memoria. Sin embargo, la gestión de la caché de espacio consume algunos recursos, incluida una pequeña cantidad de espacio en disco.
 - subvol: Nombre del subvolúmen creado
+
+Primero empezaremos con el subvolúmen "@" que corresponde al subvolúmen de nuestra partición raíz
+```
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@ /dev/vda3 /mnt
+```
+Posteriormente crearemos los directorios dentro de /mnt para montar los otros subvolúmenes y los montaremos
+```
+mkdir -v /mnt/{home,srv,tmp,var,opt,.snapshots}
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@home /dev/vda3 /mnt/home
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@srv /dev/vda3 /mnt/srv
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@tmp /dev/vda3 /mnt/tmp
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@var /dev/vda3 /mnt/var
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@opt /dev/vda3 /mnt/opt
+mount -o noatime,compress=zstd,space_cache=v2,subvol=@.snapshots /dev/vda3 /mnt/.snapshots
+```
+### Descarga de Arch Linux
+
+Para empezar con la descarga de Arch Linux, vamos a usar wget, primero nos iremos a /mnt y procederemos con la descarga
+```
+cd /mnt
+wget http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
+```
+![WGET-Arch](https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/29.png?raw=true)
+Posteriormente extraeremos el tar.gz de Arch con el siguiente comando y lo borramos
+```
+tar xvf ArchLinuxARM-aarch64-latest.tar.gz && rm -rf ArchLinuxARM-aarch64-latest.tar.gz
+```
+Una vez extraído completamente el sistema, procederemos con la configuración del sistema
+
+### Configuración de Arch Linux
+
+Primeramente vamos a generar nuestra tabla de particiones (fstab) para que el init reconozca que particiones se tienen que montar, para esto, usaremos el programa genfstab
+
+```
+genfstab -U /mnt > /mnt/etc/fstab 
+```
+Posteriormente vamos a crear el enlace simbólico para que nuestra zona horaria este correcta. En mi caso es la Ciudad de México, pero tú puedes revisar la ubicación de tu zona horaria
+```
+ln -sf /mnt/usr/share/zoneinfo/America/Mexico_City /mnt/etc/localtime
+```
+Después seleccionaremos el idioma del sistema, editando con nano descomentando el idioma y la región que te corresponde, en mi caso es Español de México, tal como aparece en la imágen. Guardamos con Control + O y salimos con Control + X
+```
+nano /mnt/etc/locale.gen  
+```
+![locale](https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/31.png?raw=true)
+A continuación vamos a crear el archivo locale.conf
+```
+echo "LANG=es_MX.UTF-8" > /mnt/etc/locale.conf
+```
+Después vamos a crear el archivo vconsole.conf para elegir nuestra distribución de teclado
+```
+echo "KEYMAP=la-latin1" > /mnt/etc/vconsole.conf
+```
+Ahora le asignaremos un nombre al equipo, en mi caso se llamará Arch
+```
+echo “Arch" > /mnt/etc/hostname
+```
+Posteriormente editaremos el archivo /mnt/etc/hosts de la siguiente forma. Nótese que se tiene que sustituir la palabra Arch por el nombre que hayas elegido para tu equipo
+```
+nano /mnt/etc/hosts
+```
+![hosts](https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/30.png?raw=true)
+
+Ahora vamos a generar el archivo /etc/adjtime y cambiar la contraseña del usuario root
+```
+arch-chroot /mnt /bin/bash -c "hwclock --systyohc && passwd root"
+```
+A continuación vamos a crear un usuario normal para el sistema, en mi caso será alexis
+```
+arch-chroot /mnt /bin/bash -c "useradd -mG wheel alexis && passwd alexis"
+```
+Posteriormente vamos a inicializar Pacman para instalación de paquetes, confirmar el repositorio de archlinuxarm, e instalar efibootmgr, las utilidades de btrfs, paquetes de desarrollo y utilidades para los sistemas de archivos DOS (FAT32), además de generar las locales de nuestro sistema, y veremos cómo los paquetes se instalan
+```
+arch-chroot /mnt /bin/bash -c "pacman-key --init && pacman-key --populate archlinuxarm && pacman -Syu --noconfirm efibootmgr btrfs-progs base-devel dosfstools && locale-gen”
+```
+![pacman](https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/32.png?raw=true)
+Casi por terminar, editaremos el archivo sudoers para que nuestro usuario tenga permisos de usar sudo. Descomentaremos **wheel ALL=(ALL:ALL) ALL** que es el segundo renglón, quitándole el "#" que aparece en dicho renglón, tal como se muestra en la siguiente imagen.
+```
+arch-chroot /mnt /bin/bash -c “EDITOR=nano visudo” 
+```
+Finalmente crearemos la entrada EFI para el sistema con efibootmgr
+```
+arch-chroot /mnt /bin/bash -c "efibootmgr --disk /dev/vda --part 1 --create --label 'Arch Linux' --loader /Image --unicode 'root=UUID=$(blkid -s UUID -o value /dev/vda3) rw rootflags=subvol=@ initrd=\initramfs-linux.img' --verbose"
+```
+*Nótese que la primera parte dice que se va a crear la entrada efi en la partición 1, y que las rootflags indican que el volumen a usar es "@" indiciando que es el subvolúmen para el sistema raíz*
+
+Posteriormente salimos de chroot y apagamos el sistema, después quitamos el archivo ISO de Ubuntu de la máquina virtual, dándole clic en "Clear" como en la siguiente imagen
+![UTM-final](https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/35.png?raw=true)
+
+Ahora iniciamos la máquima virtual y podremos ver la pantalla de inicio de Arch
+![Arch-final](https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/36.png?raw=true)
+
+## Instalación y configuración de Snapper
+```TODO
+```
+## Instalación de entornos gráficos
+```TODO
+```
