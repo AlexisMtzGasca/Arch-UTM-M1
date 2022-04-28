@@ -203,8 +203,10 @@ Ahora iniciamos la máquima virtual y podremos ver la pantalla de inicio de Arch
 ![Arch-final](https://github.com/AlexisMtzGasca/Arch-UTM-M1/blob/main/images/36.png?raw=true)
 
 ## Instalación y configuración de Snapper
-```TODO
+```
+TODO
 ```
 ## Instalación de entornos gráficos
-```TODO
+```
+TODO
 ```
